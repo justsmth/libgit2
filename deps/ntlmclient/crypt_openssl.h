@@ -60,6 +60,34 @@ typedef struct hmac_ctx_st {
 } HMAC_CTX;
 #endif
 
+#if defined(OPENSSL_IS_AWSLC)
+struct ntlm_crypt_ctx {
+	HMAC_CTX *hmac;
+
+	void *openssl_handle;
+
+	void (*des_ecb_encrypt_fn)(const_DES_cblock *input, DES_cblock *output, const DES_key_schedule *ks, int enc);
+	int (*des_set_key_fn)(const_DES_cblock *key, DES_key_schedule *schedule);
+
+	uint32_t (*err_get_error_fn)(void);
+	const char *(*err_lib_error_string_fn)(uint32_t e);
+
+	const EVP_MD *(*evp_md5_fn)(void);
+
+	HMAC_CTX *(*hmac_ctx_new_fn)(void);
+	void (*hmac_ctx_reset_fn)(HMAC_CTX *ctx);
+	void (*hmac_ctx_free_fn)(HMAC_CTX *ctx);
+	void (*hmac_ctx_cleanup_fn)(HMAC_CTX *ctx);
+
+	int (*hmac_init_ex_fn)(HMAC_CTX *ctx, const void *key, unsigned long key_len, const EVP_MD *md, ENGINE *impl);
+	int (*hmac_update_fn)(HMAC_CTX *ctx, const unsigned char *data, size_t len);
+	int (*hmac_final_fn)(HMAC_CTX *ctx, unsigned char *md, unsigned int *len);
+
+	unsigned char *(*md4_fn)(const unsigned char *d, size_t n, unsigned char *md);
+
+	int (*rand_bytes_fn)(unsigned char *buf, unsigned long num);
+};
+#else
 struct ntlm_crypt_ctx {
 	HMAC_CTX *hmac;
 
@@ -86,5 +114,6 @@ struct ntlm_crypt_ctx {
 
 	int (*rand_bytes_fn)(unsigned char *buf, int num);
 };
+#endif
 
 #endif /* PRIVATE_CRYPT_OPENSSL_H__ */

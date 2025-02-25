@@ -44,7 +44,7 @@ NTLM_INLINE(void) HMAC_CTX_free(HMAC_CTX *ctx)
 
 #endif
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)) || \
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER) && !defined(OPENSSL_IS_AWSLC)) || \
 	(defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER >= 0x03050000fL) || \
 	defined(CRYPT_OPENSSL_DYNAMIC)
 
@@ -214,8 +214,14 @@ bool ntlm_hmac_md5_init(
 
 	ntlm->crypt_ctx.hmac_ctx_cleanup_fn(ntlm->crypt_ctx.hmac);
 
+#if defined(OPENSSL_IS_AWSLC)
+	ntlm->crypt_ctx.hmac_ctx_reset_fn(ntlm->crypt_ctx.hmac);
+	return ntlm->crypt_ctx.hmac_init_ex_fn(ntlm->crypt_ctx.hmac, key, key_len, md5, NULL);
+#else
 	return ntlm->crypt_ctx.hmac_ctx_reset_fn(ntlm->crypt_ctx.hmac) &&
 	       ntlm->crypt_ctx.hmac_init_ex_fn(ntlm->crypt_ctx.hmac, key, key_len, md5, NULL);
+#endif
+
 }
 
 bool ntlm_hmac_md5_update(
